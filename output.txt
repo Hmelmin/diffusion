@@ -1,0 +1,9 @@
+Test case # 1
+Luxembourg 1
+Test case # 2
+Belgium 2
+Netherlands 2
+Test case # 3
+Spain 382
+Portugal 416
+France 1325
