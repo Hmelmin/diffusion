@@ -67,6 +67,24 @@ public class Map {
         }
     }
 
+    public boolean validateCoordinates(){
+        for (Country country : countries.values()){
+            if(!validateCountryCoordinates(country)){
+                return false;
+            }
+        }
+        return true;
+    }
+    private boolean validateCountryCoordinates(Country country){
+        if((country.getUpperRightY()<0 || country.getUpperRightY()>9) ||
+                (country.getUpperRightX()<0 || country.getUpperRightX()>9) ||
+                (country.getLowerLeftY()<0 || country.getLowerLeftY()>9) ||
+                (country.getLowerLeftX()<0 || country.getLowerLeftX()>9)){
+            return false;
+        }
+        return true;
+    }
+
     public void showResults(PrintWriter writer){
         List<Country> countriesToOutput = new LinkedList<>();
         countriesToOutput.addAll(countries.values());

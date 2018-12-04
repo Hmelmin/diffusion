@@ -1,8 +1,8 @@
 Test case # 1
-Luxembourg 1
+Wrong input!
 Test case # 2
-Belgium 2
-Netherlands 2
+Belgium 1
+Netherlands 166
 Test case # 3
 Spain 382
 Portugal 416

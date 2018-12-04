@@ -16,7 +16,7 @@ public class Main {
         while (scanner.hasNextLine()){
             count ++;
             Map map = readNewMap(scanner);
-            if(map!=null) {
+            if(map.validateCoordinates()) {
                 if (map.checkCountriesAccessibility()) {
                     map.prepareToStart();
                     writer.println("Test case # " + count);
@@ -27,25 +27,29 @@ public class Main {
                     writer.println("Some countries are isolated!");
                 }
             }
+            else {
+                writer.println("Test case # " + count);
+                writer.println("Wrong input!");
+            }
         }
         writer.close();
     }
 
     private static Map readNewMap(Scanner scanner){
         int countries = scanner.nextInt();
-        if(countries==0){
-            return null;
-        }
         Map map = new Map();
         for(int i=0;i<countries;i++){
             String name = scanner.next();
-            int lowerLeftX = scanner.nextInt()-1;
-            int lowerLeftY = scanner.nextInt()-1;
-            int upperRightX = scanner.nextInt()-1;
-            int upperRightY = scanner.nextInt()-1;
+            int lowerLeftX = Integer.parseInt(scanner.next())-1;
+            int lowerLeftY = Integer.parseInt(scanner.next())-1;
+            int upperRightX = Integer.parseInt(scanner.next())-1;
+            int upperRightY = Integer.parseInt(scanner.next())-1;
+
             Country country = new Country(name,lowerLeftX,lowerLeftY,upperRightX,upperRightY);
             map.addCountry(country);
         }
         return map;
     }
+
+
 }
