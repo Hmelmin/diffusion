@@ -9,6 +9,8 @@ public class Map {
     private HashMap<Integer,City> cities;
     private HashMap<Integer,Country> countries;
     private HashMap<City,LinkedList<City>> citiesNeighbourship;
+    private static final int  maxCoord = 9;
+    private static final int minCoord = 0;
 
     public Map(){
         cities = new HashMap<>();
@@ -23,7 +25,7 @@ public class Map {
     }
 
     public void doDiffusion(){
-        int count=0;
+        int count = 0;
         do {
             count++;
             prepareNewDay();
@@ -35,18 +37,16 @@ public class Map {
 
 
     public boolean checkCountriesAccessibility() {
-        LinkedList<Country> accessibleCountries = new LinkedList<>();
-        LinkedList<Country> currentCountryNeighbours = new LinkedList<>();
-        Country currentCountry = getSomeCountryFromMap();
+        LinkedList<Integer> accessibleCountries = new LinkedList<>();
+        LinkedList<Integer> currentCountryNeighbours = new LinkedList<>();
+        Integer currentCountry = getSomeCountryFromMap();
 
         while (accessibleCountries.size() < countries.size()) {
             accessibleCountries.add(currentCountry);
-            findLeftNeighboursForCountry(currentCountry,accessibleCountries,currentCountryNeighbours);
-            findHigherNeighboursForCountry(currentCountry,accessibleCountries,currentCountryNeighbours);
-            findRightNeighboursForCountry(currentCountry,accessibleCountries,currentCountryNeighbours);
-            findLowerNeighboursForCountry(currentCountry,accessibleCountries,currentCountryNeighbours);
-            if(currentCountryNeighbours.size()!=0){
-                currentCountry = countries.get(currentCountryNeighbours.get(0).getNumber());
+            findLeftAndRightNeighboursForCountry(currentCountry,accessibleCountries,currentCountryNeighbours);
+            findLowerAndUpperNeighboursForCountry(currentCountry,accessibleCountries,currentCountryNeighbours);
+            if(currentCountryNeighbours.size() != 0){
+                currentCountry = currentCountryNeighbours.get(0);
             }
             else {
                 break;
@@ -56,13 +56,13 @@ public class Map {
     }
 
     public void addCountry(Country country){
-        country.setNumber(countries.size()+1);//id of country is size of hashmap
-        countries.put(country.getNumber(),country);
-        for(int y=country.getLowerLeftY();y<=country.getUpperRightY();y++) {//creating a list of cities for current country
-            for (int x = country.getLowerLeftX(); x <= country.getUpperRightX(); x++) {
+        int id = countries.size()+1;
+        countries.put(id,country);
+        for(int y = country.lowerLeftY;y <= country.upperRightY;y++) {//creating a list of cities for current country
+            for (int x = country.lowerLeftX; x <= country.upperRightX; x++) {
                 City city = new City(x,y,country);
                 cities.put(getHashForCity(city.getCoordX(),city.getCoordY()),city);
-                matrix[x][y]=country.getNumber();
+                matrix[x][y]=id;
             }
         }
     }
@@ -76,13 +76,10 @@ public class Map {
         return true;
     }
     private boolean validateCountryCoordinates(Country country){
-        if((country.getUpperRightY()<0 || country.getUpperRightY()>9) ||
-                (country.getUpperRightX()<0 || country.getUpperRightX()>9) ||
-                (country.getLowerLeftY()<0 || country.getLowerLeftY()>9) ||
-                (country.getLowerLeftX()<0 || country.getLowerLeftX()>9)){
-            return false;
-        }
-        return true;
+        return !((country.upperRightY < minCoord || country.upperRightY > maxCoord) ||
+                (country.upperRightX < minCoord || country.upperRightX > maxCoord) ||
+                (country.lowerLeftY < minCoord || country.lowerLeftY > maxCoord) ||
+                (country.lowerLeftX < minCoord || country.lowerLeftX > maxCoord));
     }
 
     public void showResults(PrintWriter writer){
@@ -93,12 +90,12 @@ public class Map {
             public int compare(Country o1, Country o2) {
                 int compareByDay = o1.getFilledDay() - o2.getFilledDay();
                 if (compareByDay == 0) {
-                    return o1.getName().compareTo(o2.getName());
+                    return o1.name.compareTo(o2.name);
                 } else return compareByDay;
             }
         });
         for(Country country:countriesToOutput){
-            writer.println(country.getName()+" " +country.getFilledDay());
+            writer.println(country.name+" " +country.getFilledDay());
         }
     }
 
@@ -109,14 +106,14 @@ public class Map {
     }
 
     private void closeDay(){
-        for (City city:cities.values()){
+        for (City city : cities.values()){
             city.fillBalances();
             city.clearIncoming();
         }
     }
 
     private boolean checkCitiesDone(int day){
-        for(Country country:countries.values()){
+        for(Country country : countries.values()){
             if(country.getFilledDay()<0){
                 country.setFilledDay(day);
             }
@@ -153,35 +150,35 @@ public class Map {
     }
 
     private void setCitiesNeighbourship(){
-        for(City city:cities.values()){
+        for(City city : cities.values()){
             int x = city.getCoordX();
             int y = city.getCoordY();
             LinkedList<City> neighbours = new LinkedList<>();
             if(checkLeftNeighbourCity(x,y)){
-                neighbours.add(cities.get(getHashForCity(x-1,y)));
+                neighbours.add(cities.get(getHashForCity(x - 1,y)));
             }
             if(checkRightNeighbourCity(x,y)){
-                neighbours.add(cities.get(getHashForCity(x+1,y)));
+                neighbours.add(cities.get(getHashForCity(x + 1,y)));
             }
             if(checkHigherNeighbourCity(x,y)){
-                neighbours.add(cities.get(getHashForCity(x,y+1)));
+                neighbours.add(cities.get(getHashForCity(x,y + 1)));
             }
             if(checkLowerNeighbourCity(x,y)){
-                neighbours.add(cities.get(getHashForCity(x,y-1)));
+                neighbours.add(cities.get(getHashForCity(x,y - 1)));
             }
             citiesNeighbourship.put(city,neighbours);
         }
     }
 
     private void setInitialBalances(){
-        for(City city:cities.values()){
+        for(City city : cities.values()){
             city.setInitialBalances(countries.values());
         }
     }
 
-    private Country getSomeCountryFromMap(){
-        for(Country country:countries.values()){
-            return country;
+    private Integer getSomeCountryFromMap(){
+        for(Integer key : countries.keySet()){
+            return key;
         }
         return null;
     }
@@ -191,76 +188,63 @@ public class Map {
     }
 
     private boolean checkLeftNeighbourCity(int x,int y){
-        return x != 0 && matrix[x - 1][y] != 0;
+        return x != minCoord && matrix[x - 1][y] != 0;
     }
 
     private boolean checkRightNeighbourCity(int x,int y){
-        return x != 9 && matrix[x + 1][y] != 0;
+        return x != maxCoord && matrix[x + 1][y] != 0;
     }
 
     private boolean checkHigherNeighbourCity(int x,int y){
-        return y != 9 && matrix[x][y + 1] != 0;
+        return y != maxCoord && matrix[x][y + 1] != 0;
     }
 
     private boolean checkLowerNeighbourCity(int x,int y){
-        return y != 0 && matrix[x ][y - 1] != 0;
+        return y != minCoord && matrix[x][y - 1] != 0;
     }
 
 
-    private void findLeftNeighboursForCountry(Country currentCountry,LinkedList<Country> accessibleCountries,List<Country> currentCountryNeighbours){
-        if (currentCountry.getLowerLeftX() != 0) {
-            for (int y = currentCountry.getLowerLeftY(); y <= currentCountry.getUpperRightY(); y++) {
-                int country = matrix[currentCountry.getLowerLeftX()-1][y];
-                if (country != 0) {
-                    if (!(accessibleCountries.contains(countries.get(country)) || currentCountryNeighbours.contains(countries.get(country)))) {
-                        currentCountryNeighbours.add(countries.get(country));
-                    }
+    private void findLeftAndRightNeighboursForCountry(Integer currentCountryNumber,List<Integer> accessibleCountries,List<Integer> currentCountryNeighbours){
+        Country currentCountry = countries.get(currentCountryNumber);
+            for (int i=0; i <= currentCountry.upperRightY - currentCountry.lowerLeftY; i++) {
+                if(currentCountry.lowerLeftX != minCoord) {
+                    int country = matrix[currentCountry.lowerLeftX - 1][currentCountry.lowerLeftY + i];
+                    addCountryToNeighboursList(country, accessibleCountries, currentCountryNeighbours);
                 }
+                if(currentCountry.upperRightX != maxCoord) {
+                    int country = matrix[currentCountry.upperRightX + 1][i + currentCountry.lowerLeftY + i];
+                    addCountryToNeighboursList(country, accessibleCountries, currentCountryNeighbours);
+                }
+            }
+
+
+    }
+
+
+
+    private void findLowerAndUpperNeighboursForCountry(Integer currentCountryNumber,List<Integer> accessibleCountries,List<Integer> currentCountryNeighbours){
+        Country currentCountry = countries.get(currentCountryNumber);
+
+            for (int i = currentCountry.lowerLeftX; i <= currentCountry.upperRightX- currentCountry.lowerLeftX; i++) {
+                if (currentCountry.lowerLeftY != minCoord) {
+                    int country = matrix[currentCountry.lowerLeftX + i ][currentCountry.lowerLeftY - 1];
+                    addCountryToNeighboursList(country, accessibleCountries, currentCountryNeighbours);
+                }
+                if (currentCountry.upperRightY != maxCoord) {
+                    int country = matrix[currentCountry.lowerLeftX + i ][currentCountry.upperRightY + 1];
+                    addCountryToNeighboursList(country, accessibleCountries, currentCountryNeighbours);
+                }
+            }
+
+    }
+
+
+    private void addCountryToNeighboursList(int countryNumber,List<Integer> accessibleCountries,List<Integer> currentCountryNeighbours ){
+        if(countryNumber != 0) {
+            if (!(accessibleCountries.contains(countryNumber) ||
+                    currentCountryNeighbours.contains(countryNumber))) {
+                currentCountryNeighbours.add(countryNumber);
             }
         }
     }
-
-    private void findRightNeighboursForCountry(Country currentCountry,LinkedList<Country> accessibleCountries,List<Country> currentCountryNeighbours){
-        if (currentCountry.getUpperRightX() != 9) {
-            for (int y = currentCountry.getLowerLeftY(); y <= currentCountry.getUpperRightY(); y++) {
-                int country = matrix[currentCountry.getUpperRightX()+1][y];
-                if (country != 0) {
-                    if (!(accessibleCountries.contains(countries.get(country)) || currentCountryNeighbours.contains(countries.get(country)))) {
-                        currentCountryNeighbours.add(countries.get(country));
-                    }
-                }
-            }
-        }
-    }
-
-    private void findLowerNeighboursForCountry(Country currentCountry,LinkedList<Country> accessibleCountries,List<Country> currentCountryNeighbours){
-        if (currentCountry.getLowerLeftY() != 0) {
-            for (int x = currentCountry.getLowerLeftX(); x <= currentCountry.getUpperRightX(); x++) {
-                int country = matrix[x][currentCountry.getLowerLeftY()-1];
-                if (country != 0) {
-                    if (!(accessibleCountries.contains(countries.get(country)) || currentCountryNeighbours.contains(countries.get(country)))) {
-                        currentCountryNeighbours.add(countries.get(country));
-                    }
-                }
-            }
-        }
-    }
-
-    private void findHigherNeighboursForCountry(Country currentCountry,LinkedList<Country> accessibleCountries,List<Country> currentCountryNeighbours){
-        if (currentCountry.getUpperRightY() != 9) {
-            for (int x = currentCountry.getLowerLeftX(); x <= currentCountry.getUpperRightX(); x++) {
-                int country = matrix[x][currentCountry.getUpperRightY()+1];
-                if (country != 0) {
-                    if (!(accessibleCountries.contains(countries.get(country)) || currentCountryNeighbours.contains(countries.get(country)))){
-                        currentCountryNeighbours.add(countries.get(country));
-                    }
-                }
-            }
-        }
-    }
-
-
-
-
-
 }

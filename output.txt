@@ -1,5 +1,5 @@
 Test case # 1
-Wrong input!
+Luxembourg 1
 Test case # 2
 Belgium 1
 Netherlands 166

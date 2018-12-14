@@ -9,18 +9,16 @@ public class City {
     private int coordY;
     private Country country;
     /*for each type of coins we create a separate "account"*/
-    private HashMap<Country,Integer> currentBalance;//accounts to store current amount of coins of each type
-    private HashMap<Country,Integer> incomingBalance;//accounts to receive new coins of each type during the day
-    private HashMap<Country,Integer> amountToPay;//amount of coins of each type to pay during the day
-
+    private HashMap<Country,Integer> currentBalance = new HashMap<>() ;//accounts to store current amount of coins of each type
+    private HashMap<Country,Integer> incomingBalance = new HashMap<>();//accounts to receive new coins of each type during the day
+    private HashMap<Country,Integer> amountToPay = new HashMap<>();//amount of coins of each type to pay during the day
+    private final int initialAmountOfCoins = 1000000;
 
     public City(int coordX, int coordY, Country country) {
         this.coordX = coordX;
         this.coordY = coordY;
         this.country = country;
-        currentBalance = new HashMap<>();
-        incomingBalance = new HashMap<>();
-        amountToPay = new HashMap<>();
+
     }
 
     public int getCoordX() {
@@ -63,8 +61,8 @@ public class City {
 
     public void setInitialBalances(Collection<Country> countries){
         for(Country country:countries){
-            if(this.country.getNumber()==country.getNumber()){
-                currentBalance.put(country,1000000);
+            if(this.country.equals(country)){
+                currentBalance.put(country,initialAmountOfCoins);
             }
             else{
                 currentBalance.put(country,0);
